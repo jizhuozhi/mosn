@@ -113,6 +113,7 @@ type Cluster struct {
 	DnsResolverPort      string              `json:"dns_resolver_port,omitempty"`
 	SlowStart            SlowStartConfig     `json:"slow_start,omitempty"`
 	ClusterPoolEnable    bool                `json:"cluster_pool_enable,omitempty"`
+	MaxSize              int                 `json:"max_size,omitempty"`
 }
 
 type DnsResolverConfig struct {

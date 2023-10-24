@@ -29,6 +29,7 @@ import (
 // Servers contains the listener, filter and so on
 // ClusterManager used to manage the upstream
 type MOSNConfig struct {
+	InstanceName         string               `json:"instance_name,omitempty"`
 	Servers              []ServerConfig       `json:"servers,omitempty"`                //server config
 	ClusterManager       ClusterManagerConfig `json:"cluster_manager,omitempty"`        //cluster config
 	DisableUpgrade       bool                 `json:"disable_upgrade,omitempty"`        // not upgrade from old mosn, default false

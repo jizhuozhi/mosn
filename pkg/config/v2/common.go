@@ -67,3 +67,13 @@ var ErrDuplicateStaticAndDynamic = errors.New("only one of static config or dyna
 const MaxFilePath = 128
 
 const sep = string(os.PathSeparator)
+
+var instanceName string
+
+func InstanceName() string {
+	return instanceName
+}
+
+func SetInstanceName(name string) {
+	instanceName = name
+}

@@ -71,6 +71,7 @@ func NewClusterInfo(clusterConfig v2.Cluster) types.ClusterInfo {
 		clusterManagerTLS:    clusterConfig.ClusterManagerTLS,
 		clusterPoolEnable:    clusterConfig.ClusterPoolEnable,
 		lbConfig:             clusterConfig.LbConfig,
+		maxSize:              clusterConfig.MaxSize,
 	}
 	// set ConnectTimeout
 	if clusterConfig.ConnectTimeout != nil {
@@ -224,6 +225,7 @@ type clusterInfo struct {
 	lbConfig             *v2.LbConfig
 	slowStart            types.SlowStart
 	clusterPoolEnable    bool
+	maxSize              int
 }
 
 func (ci *clusterInfo) Name() string {
@@ -295,6 +297,10 @@ func (ci *clusterInfo) SlowStart() types.SlowStart {
 
 func (ci *clusterInfo) IsClusterPoolEnable() bool {
 	return ci.clusterPoolEnable
+}
+
+func (ci *clusterInfo) MaxSize() int {
+	return ci.maxSize
 }
 
 type clusterSnapshot struct {

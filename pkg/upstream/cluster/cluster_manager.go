@@ -21,6 +21,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hash/fnv"
+	"math/rand"
 	"reflect"
 	"sort"
 	"sync"
@@ -366,6 +368,9 @@ func (cm *clusterManager) RemovePrimaryCluster(clusterNames ...string) error {
 // EDS Handler
 func NewSimpleHostHandler(c types.Cluster, hostConfigs []v2.Host) {
 	snap := c.Snapshot()
+
+	hostConfigs = subsetting(v2.InstanceName(), snap.ClusterInfo(), hostConfigs)
+
 	hosts := make([]types.Host, 0, len(hostConfigs))
 	for _, hc := range hostConfigs {
 		hosts = append(hosts, NewSimpleHost(hc, snap.ClusterInfo()))
@@ -382,6 +387,9 @@ func NewSimpleHostHandler(c types.Cluster, hostConfigs []v2.Host) {
 
 func AppendSimpleHostHandler(c types.Cluster, hostConfigs []v2.Host) {
 	snap := c.Snapshot()
+
+	hostConfigs = subsetting(v2.InstanceName(), snap.ClusterInfo(), hostConfigs)
+
 	hosts := make([]types.Host, 0, len(hostConfigs))
 	for _, hc := range hostConfigs {
 		hosts = append(hosts, NewSimpleHost(hc, snap.ClusterInfo()))
@@ -397,6 +405,41 @@ func AppendSimpleHostHandler(c types.Cluster, hostConfigs []v2.Host) {
 	}
 
 	c.UpdateHosts(ns)
+}
+
+func subsetting(instanceName string, ci types.ClusterInfo, hosts []v2.Host) []v2.Host {
+	size := ci.MaxSize()
+	length := len(hosts)
+
+	if size == 0 || length == 0 {
+		return hosts
+	}
+
+	// calculate instance hashcode
+	h := fnv.New64a()
+	_, _ = h.Write([]byte(instanceName))
+	v := h.Sum64() & 0x7FFFFFFF
+	instanceId := int64(v)
+
+	// for safe shuffling
+	hs := make([]v2.Host, length)
+	copy(hs, hosts)
+	r := rand.New(rand.NewSource(instanceId))
+	r.Shuffle(length, func(i, j int) {
+		t := hs[i]
+		hs[i] = hs[j]
+		hs[j] = t
+	})
+
+	// calculate subset
+	count := len(hosts) / ci.MaxSize()
+	bucket := int(instanceId % int64(count))
+	start := bucket * size
+
+	// for GC
+	result := make([]v2.Host, size)
+	copy(result, hs[start:start+size])
+	return result
 }
 
 // UpdateClusterHosts update all hosts in the cluster

@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net"
+	"os"
 	"time"
 
 	"mosn.io/mosn/pkg/admin/store"
@@ -79,6 +80,9 @@ func (m *Mosn) Init(c *v2.MOSNConfig) error {
 	if c.CloseGraceful {
 		c.DisableUpgrade = true
 	}
+
+	m.initInstanceName()
+
 	if err := m.inheritConfig(c); err != nil {
 		return err
 	}
@@ -169,6 +173,19 @@ func (m *Mosn) inheritConfig(c *v2.MOSNConfig) (err error) {
 		log.StartLogger.Errorf("[mosn] [NewMosn] start service failed: %v, exit", err)
 	}
 	return
+}
+
+func (m *Mosn) initInstanceName() {
+	c := m.Config
+	name := c.InstanceName
+	if name == "" {
+		name = os.Getenv("MOSN_INSTANCE_NAME")
+	}
+	if name == "" {
+		// kubernetes exposed pod information
+		name = os.Getenv("MY_POD_NAME")
+	}
+	v2.SetInstanceName(name)
 }
 
 func (m *Mosn) initializeMetrics() {

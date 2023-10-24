@@ -231,6 +231,9 @@ type ClusterInfo interface {
 
 	// IsClusterPoolEnable returns the cluster pool enable or not
 	IsClusterPoolEnable() bool
+
+	// MaxSize returns the max size of hosts
+	MaxSize() int
 }
 
 // ResourceManager manages different types of Resource
